@@ -28,12 +28,12 @@ Ce projet s'inscrit dans un contexte plus large de recherche visant à développ
 Pour créer un environnement avec Python 3.10 utilisant Conda, exécutez les commandes suivantes :
 1. Création de l'environnement conda avec python 3.10
 ```
-conda create -n env_name python=3.10
+conda create -n py310 python=3.10
 ```
 
 2. Activation de l'environnement conda
 ```
-conda activate env_name
+conda activate py310
 ```
 
 ### Installation de CUDA et cuDNN
