@@ -28,12 +28,12 @@ Ce projet s'inscrit dans un contexte plus large de recherche visant à développ
 Pour créer un environnement avec Python 3.10 utilisant Conda, exécutez les commandes suivantes :
 1. Création de l'environnement conda avec python 3.10
 ```
-conda create -n py310 python=3.10
+conda create -n env_name python=3.10
 ```
 
 2. Activation de l'environnement conda
 ```
-conda activate py310
+conda activate env_name
 ```
 
 ### Installation de CUDA et cuDNN
@@ -59,6 +59,7 @@ cd <nom_du_dossier>
 ```
 pip install -r path/to/requirements.txt
 ```
+
 
 ## Structure du répertoire
 ```plaintext
@@ -95,11 +96,7 @@ project-name/
 
 # Utilisation du Dépôt
 ## Données
-Dans le dossier data 3 dossiers : train, test et val, déposé les textes romanesques francais au format suivants : 
-
-Attention : Chaque texte est unique, et ne peut pas être présent dans les 3 dossiers 
-
-Le seul prétraitement effectué, permet d'isoler toutes ponctuations du reste du texte, donc appliqué votre propre prétraiment si nécessaire.
+Dans le dossier ``data``, trois sous-dossiers sont présents : ``train``, ``test`` et ``val``. Déposer les textes au format suivant :
 
 ```
 (Nom auteur)(Prénom auteur)(Titre de l'oeuvre)(Sexe de l'auteur, 1:Homme ou 2:Femme)(Années de parution)()()()().txt
@@ -109,65 +106,64 @@ Ex :
 (ABEL)(Barbara)(l_innocence des bourreaux)(2)(2015)(1969)(v)(fr)(z)(z)(V)(z)(T).txt
 ```
 
-Attention : Toutes les données formatées, tokenizé et ainsi que tous les labels necéssaire à l'entraînement d'un modèle sont compris dans des fichier .pkl non inclu avec le répertoire. 
-Tous ces fichiers sont crées et enregistrés dans le dossier pkl.
+Le seul prétraitement effectué isole toutes les ponctuations du reste du texte. Appliquez votre propre prétraitement si nécessaire.
 
-Depuis l'invité de commande
+``Attention : ``
+* Chaque texte doit être unique et ne peut pas se trouver dans plusieurs dossiers.
+* Toutes les données formatées, tokenisées et les labels nécessaires à l'entraînement du modèle sont contenus dans des fichiers .pkl non inclus dans le répertoire. Ces fichiers sont créés et enregistrés dans le dossier pkl en exécutant directement data.py ou lors de l'entraînement d'un modèle.
 
-1. Se positionner dans le dossier data
-```
-cd path/to/data
-```
+Les données nécessaires à l'entraînement et à l'évaluation sont chargées depuis les fichiers .pkl. S'ils n'existent pas, ils seront générés au moment de l'exécution de data.py ou durant l'entraînement d'un modèle qui appelle obligatoirement data.py.
 
-2. Créer le dossier pkl s'il n'est pas déjà présent
-```
-mkdir pkl
-```
-
-Les données nécessaire lors de l'entrainement et de l'évaluation sont chargées depuis les fichiers .pkl, s'ils n'existent pas, alors ils seront générés au moment de l'exécution du fichier data.py ou durant l'entrainement d'un modèle qui appel obligatoirement le fichier data.py.
-
-Pour changer les données ou le taux de données utilisées durant l'entrainement et l'évaluation, il est nécessaire de supprimer les fichiers reduced .pkl utilisés 
-
+Pour changer les données ou le taux de données utilisées durant l'entraînement et l'évaluation, il est nécessaire de supprimer les fichiers ``_reduced.pkl`` ou ``_balanced.pkl`` utilisés, puis modifier la quantité de données en ajustant les tailles dans le fichier config.py.
 
 ## Configuration de quelques paramètres de l'entraînement 
-Modifier le contenu des variables contenu dans le fichier config.py, tous les paramètres ne sont pas personnalisable depuis ce fichiers.
+Modifiez le contenu des variables dans le fichier config.py. Tous les paramètres ne sont pas personnalisables depuis ce fichier. 
 
-Certain d'entres eux nécessite une modification en dur directement dans le dossier .py correspondant au modèle.
-
+Certains nécessitent une modification directe dans le fichier .py correspondant au modèle.
 
 ## Entraînement & évaluation des Modèles 
-Dans votre invité de commande
-1. Activer votre environnement conda
+Dans le terminal : 
+1. Activer l'environnement conda
 ```
-conda activate nom_environement
+conda activate py310
 ```
 
-2. Se positionner dans le dossier scripts
+2. Se positionner dans le dossier ``scripts``
 ```
 cd path/to/scripts
 ```
 
-3. Entraînement, deux possibilités, 
+3. Entraînement, deux possibilités :
 
     3.1. Entraîner un seul modèle
-    Exécuter le script correspondant au modèle ex: mm_cnn.py
+    Exécuter le script correspondant au modèle, par exemple ``mm_cnn``
     ```
-    python model.py
+    python mm_cnn.py
     ```
     3.2. Entrainé tous les modèles à la suite, exécuter le fichier main.py
     ```
     python main.py
     ```
 
-L'entraînement se lance alors, et plus aucun input de l'utilisateur n'est requis
+L'entraînement se lance alors, et plus aucun input de l'utilisateur n'est requis.
 
 ## Modifier un modèle existant
-Ouvrir le fichier .py correspondant et modifier les paramètes en dur qui y sont présents.
+Ouvrir le fichier ``.py`` correspondant et modifier les paramètes en dur présents dans ce fichier.
+
+# BERT : CamemBERT
+
+
+# CNN
+
+
+# Multitâche et multitête
+
 
 # Méthodologie 
+
 * Pré traitement des textes pour isoler toute ponctuation 
-ex : "oui!" devient "oui !"
-* Chargement d'un modèle de type Bert pré entrainé --> Distil Camembert https://huggingface.co/cmarkea/distilcamembert-base  
+Ex : ``"oui!"`` devient ``"oui !"``
+* Chargement d'un pré entrîné modèle de type ``BERT`` pré entrainé : ``DistilCamembert`` https://huggingface.co/cmarkea/distilcamembert-base  
 
 
 # Résultats
