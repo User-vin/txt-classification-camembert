@@ -1,3 +1,5 @@
+## TRAINING
+
 import config
 import data
 import os
@@ -48,16 +50,23 @@ def mm_cnn(
     conv_kernel_size: int=3, 
 ):
     """
-    Crée un modèle Keras avec un modèle BERT pré-entraîné pour une tâche multitâche de classification.
+    Crée un modèle Keras pour une tâche multitâche de classification avec BERT et CNN.
 
     Parameters:
-    - model_id: str, identifiant du modèle pré-entraîné à utiliser (par exemple, 'bert-base-uncased')
-    - max_length: int, la longueur maxiHomme des séquences d'entrée
-    - dense_units: int, nombre d'unités pour les couches denses individuelles
-    - concat_dense_units: int, nombre d'unités pour la couche dense après concaténation
+        num_date_classes (int): Nombre de classes pour la classification des dates.
+        model_id (str, optional): Identifiant du modèle BERT pré-entraîné à utiliser (par exemple, 'bert-base-uncased').
+        max_length (int, optional): Longueur maximale des séquences d'entrée. Par défaut 514.
+        dense_units (int, optional): Nombre d'unités pour les couches denses individuelles. Par défaut 16.
+        conv_filters (int, optional): Nombre de filtres pour la couche Conv1D. Par défaut 32.
+        conv_kernel_size (int, optional): Taille du noyau pour la couche Conv1D. Par défaut 3.
 
     Returns:
-    - model: Keras Model, le modèle compilé
+        tf.keras.Model: Le modèle Keras compilé pour la tâche multitâche.
+
+    Notes:
+        Le modèle prend en entrée les identifiants d'entrée (input_ids) et le masque d'attention (attention_mask)
+        et génère deux sorties : une pour la classification binaire du sexe (sigmoid) et une pour la classification
+        multinomiale de la date (softmax).
     """
     # Charger le modèle BERT pré-entraîné
     bert_model = TFAutoModel.from_pretrained(model_id)
@@ -113,7 +122,7 @@ def main():
 
     # 2. Compiler le modèle avec les fonctions de perte appropriées pour chaque sortie
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=2e-5),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=config.LEARNING_RATE),
         loss={
             "Sexe_output": "binary_crossentropy", 
             "Date_output": custom_loss,
@@ -125,7 +134,8 @@ def main():
         metrics={
             "Sexe_output": "accuracy", 
             "Date_output": custom_metric,
-        }
+        },
+        # run_eagerly=True
     )
 
     # Sauvegarder l'architecture du modèle en .png
@@ -188,6 +198,7 @@ def main():
     test_inputs = inputs_and_labels["test_inputs"]
     test_sexe_labels = inputs_and_labels["test_sexe_labels"]
     test_date_labels = inputs_and_labels["test_date_labels"]
+    test_file_name = inputs_and_labels["test_file_name"]
 
     # Libérer la mémoire occupée par inputs_and_labels
     del inputs_and_labels
@@ -216,7 +227,7 @@ def main():
     # )
 
     print("\nPrédictions...\n")
-    prediction_df = prediction(model=model, input_data=test_inputs, sexe_label=test_sexe_labels, date_label=test_date_labels)
+    prediction_df = prediction(model=model, input_data=test_inputs, sexe_label=test_sexe_labels, date_label=test_date_labels, file_name=test_file_name)
 
     evaluate_model(
         df=prediction_df, 

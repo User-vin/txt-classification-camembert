@@ -1,3 +1,4 @@
+## UTILITY
 
 # Import 
 import os
@@ -21,8 +22,23 @@ from sklearn.metrics import (
     roc_auc_score 
 )
 
-
+#region ----- Définir les utility functions
 def calculate_estimated_year_tensor(intervals, probabilities):
+    """
+    Calcule l'année estimée à partir d'intervales et de leurs probabilités associées.
+
+    Args:
+        intervals (list): Liste d'intervales au format string (par exemple, "[1980, 1990]").
+        probabilities (tf.Tensor): Tensor des probabilités associées à chaque intervalle.
+
+    Returns:
+        tf.Tensor: Tensor contenant les années estimées arrondies.
+
+    Notes:
+        La fonction prend en entrée une liste d'intervales et un tensor de probabilités correspondant à chaque intervalle.
+        Elle calcule une année estimée en prenant la somme pondérée des valeurs moyennes des intervalles selon leurs probabilités.
+        Le résultat est arrondi à l'année la plus proche.
+    """
     def get_bounds(interval: str):
         start, end = interval.strip("[]()").split(", ")
         return int(start), int(end)
@@ -45,6 +61,21 @@ def calculate_estimated_year_tensor(intervals, probabilities):
 
 
 def custom_loss(y_true, y_pred):
+    """
+    Calcul de la perte personnalisée basée sur l'erreur quadratique moyenne.
+
+    Args:
+        y_true (tf.Tensor): Valeurs réelles de l'année.
+        y_pred (tf.Tensor): Prédictions du modèle pour les probabilités d'intervalle.
+
+    Returns:
+        tf.Tensor: Valeur de l'erreur quadratique moyenne.
+
+    Notes:
+        Cette fonction calcule l'erreur quadratique moyenne entre les années estimées et les valeurs réelles.
+        Les années estimées sont calculées à partir des probabilités prédites pour chaque intervalle.
+        Elle retourne la moyenne des erreurs quadratiques pour évaluer la performance du modèle.
+    """
     # Obtenez les années estimées en utilisant les prédictions fournies par le modèle
     # intervals = ['[1825, 1850)', '[1850, 1875)', '[1875, 1900)', '[1900, 1925)', '[1925, 1950)', '[1950, 1975)', '[1975, 2000)', '[2000, 2024)']
     estimated_years = calculate_estimated_year_tensor(list(config.DATE_MAP.values()), y_pred)
@@ -66,6 +97,13 @@ def custom_loss(y_true, y_pred):
 
 
 def custom_objects_dict():
+    """
+    Retourne un dictionnaire des objets personnalisés utilisés dans l'application.
+
+    Returns:
+        dict: Dictionnaire contenant les références aux objets personnalisés, tels que le modèle TFCamembert,
+              la fonction de perte personnalisée et la métrique personnalisée.
+    """
     cutom_objects = {
         "TFCamembertModel": TFCamembertModel, 
         "custom_loss": custom_loss, 
@@ -74,25 +112,60 @@ def custom_objects_dict():
     return cutom_objects
 
 
-def custom_metric(y_true, y_pred):
-    # intervals = ['[1825, 1850)', '[1850, 1875)', '[1875, 1900)', '[1900, 1925)', '[1925, 1950)', '[1950, 1975)', '[1975, 2000)', '[2000, 2024)']
-    estimated_years = calculate_estimated_year_tensor(list(config.DATE_MAP.values()), y_pred)
-    # estimated_years = calculate_estimated_year_tensor(intervals, y_pred)
-    # Convertir y_true en float32 sans changer la shape
+def date_accuracy(y_true, estimated_years):
+    """
+    Calcule la précision de prédiction des années estimées par rapport aux années réelles.
+
+    Args:
+        y_true (tf.Tensor): Valeurs réelles des années.
+        estimated_years (tf.Tensor): Années estimées par le modèle.
+
+    Returns:
+        tf.Tensor: Précision de prédiction sous forme de valeur flottante.
+    """
     y_true_float = tf.cast(y_true, tf.float32)
     # Aplatir y_true pour correspondre à estimated_years
     y_true_flat = tf.reshape(y_true_float, [-1])
     # Calcul de la précision
     correct_predictions = tf.abs(estimated_years - y_true_flat) <= 25
     accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+    
+    return accuracy
+
+def custom_metric(y_true, y_pred):
+    """
+    Calcule une métrique personnalisée basée sur la précision de prédiction des années estimées.
+
+    Args:
+        y_true (tf.Tensor): Valeurs réelles des années.
+        y_pred (tf.Tensor): Prédictions du modèle pour les années.
+
+    Returns:
+        tf.Tensor: Précision de prédiction des années estimées sous forme de valeur flottante.
+    """
+    estimated_years = calculate_estimated_year_tensor(list(config.DATE_MAP.values()), y_pred)
+    accuracy = date_accuracy(y_true, estimated_years)
     return accuracy
 
 
 def evaluate_model(df: pd.DataFrame, confusion_matrix_output: str, roc_curve_output: str, json_output: str):
+    """
+    Évalue les performances d'un modèle de classification à partir d'un DataFrame donné.
+
+    Args:
+        df (pd.DataFrame): DataFrame contenant les prédictions et les vérités terrain.
+        confusion_matrix_output (str): Chemin de sortie pour la matrice de confusion.
+        roc_curve_output (str): Chemin de sortie pour la courbe ROC.
+        json_output (str): Chemin de sortie pour enregistrer les métriques au format JSON.
+
+    Returns:
+        dict: Un dictionnaire contenant les métriques de performance évaluées.
+    """
     plt.style.use("seaborn-v0_8-whitegrid")
     true_sexe = np.array(df["true sexe"].tolist())
     pred_sexe = np.array(df["pred sexe"].tolist())
     true_date = np.array(df["true date"].tolist())
+    pred_date = np.array(df["pred date"].tolist())
 
     # Sexe metrics
     accuracy_sexe = accuracy_score(true_sexe, pred_sexe)
@@ -100,16 +173,79 @@ def evaluate_model(df: pd.DataFrame, confusion_matrix_output: str, roc_curve_out
     recall_sexe = recall_score(true_sexe, pred_sexe)
     f1_sexe = f1_score(true_sexe, pred_sexe)
     auc_sexe = roc_auc_score(true_sexe, pred_sexe)
+    
+    # Convertir les EagerTensor en numpy arrays
+    if pred_date[0]:
+        accuracy_date = np.float64(date_accuracy(true_date, pred_date))
+    else:
+        accuracy_date = None
+        
+    print(f"\nSegments:\nSexe - Accuracy: {accuracy_sexe} \nDate - Accuracy: {accuracy_date} \nPrecision: {precision_sexe} \nRecall: {recall_sexe} \nF1 Score: {f1_sexe} \nAUC: {auc_sexe}\n")
 
-    print(f"\nSexe - Accuracy: {accuracy_sexe} \nPrecision: {precision_sexe} \nRecall: {recall_sexe} \nF1 Score: {f1_sexe} \nAUC: {auc_sexe}\n")
+    def get_text_preds_labels(df: pd.DataFrame, date=1):
+        true_sexe = []
+        true_date = []
+
+        pred_sexe = []
+        pred_date = []
+
+        groups = df.groupby("file name")  
+
+        for _, group in groups:
+            true_sexe.append(group["true sexe"].value_counts().idxmax())
+            pred_sexe.append(group["pred sexe"].value_counts().idxmax())
+            
+            if date: 
+                true_date.append(group["true date"].value_counts().idxmax())
+                pred_date.append(group["pred date"].value_counts().idxmax())
+            
+        return {
+            "text_true_sexe": true_sexe,
+            "text_true_date": true_date,
+            "text_pred_sexe": pred_sexe,
+            "text_pred_date": pred_date
+        }
+    
+    text_res = get_text_preds_labels(df=df, date=pred_date[0])
+
+    text_true_sexe = text_res["text_true_sexe"]
+    text_true_date = text_res["text_true_date"]
+    text_pred_sexe = text_res["text_pred_sexe"]
+    text_pred_date = text_res["text_pred_date"]
+    
+    assert len(text_true_sexe) > 0, "true_sexe must not be empty"
+    assert len(text_pred_sexe) > 0, "pred_sexe must not be empty"
+    assert len(text_true_sexe) == len(text_pred_sexe), "true_sexe and pred_sexe must have the same length"
+    
+    
+    # Convertir les EagerTensor en numpy arrays
+    if text_pred_date:
+        text_accuracy_date = np.float64(date_accuracy(text_true_date, text_pred_date))
+    else:
+        text_accuracy_date = None
+        
+    text_accuracy_sexe = accuracy_score(text_true_sexe, text_pred_sexe)
+    text_precision_sexe = precision_score(text_true_sexe, text_pred_sexe)
+    text_recall_sexe = recall_score(text_true_sexe, text_pred_sexe)
+    text_f1_sexe = f1_score(text_true_sexe, text_pred_sexe)
+    text_auc_sexe = roc_auc_score(text_true_sexe, text_pred_sexe)
+
+    print(f"\nTexts:\nSexe - Accuracy: {text_accuracy_sexe} \nDate - Accuracy: {text_accuracy_date} \nPrecision: {text_precision_sexe} \nRecall: {text_recall_sexe} \nF1 Score: {text_f1_sexe} \nAUC: {text_auc_sexe}\n")
 
     # Enregistrement des métriques dans un .json
     metrics = {
         "accuracy_sexe": accuracy_sexe,
+        "accuracy_date": text_accuracy_date.item() if text_accuracy_date is not None else None,  # Handle None case
         "precision_sexe": precision_sexe,
         "recall_sexe": recall_sexe,
         "f1_sexe": f1_sexe,
-        "auc_sexe": auc_sexe
+        "auc_sexe": auc_sexe,
+        "text_accuracy_sexe": text_accuracy_sexe,
+        "text_accuracy_date": text_accuracy_date.item() if text_accuracy_date is not None else None,  # Handle None case
+        "text_precision_sexe": text_precision_sexe,
+        "text_recall_sexe": text_recall_sexe,
+        "text_f1_sexe": text_f1_sexe,
+        "text_auc_sexe": text_auc_sexe
     }
 
     with open(json_output, "w") as json_file:
@@ -149,6 +285,15 @@ def evaluate_model(df: pd.DataFrame, confusion_matrix_output: str, roc_curve_out
 
 
 def map_true_date_to_interval(date):
+    """
+    Mappe une date donnée à un intervalle prédéfini à partir de DATE_MAP.
+
+    Args:
+        date (_type_): Date à mapper à un intervalle.
+
+    Returns:
+        _type_: Interval correspondant à la date, ou None si la date ne correspond à aucun intervalle défini.
+    """
     for _, value in config.DATE_MAP.items():
         start, end = map(int, value.strip("[]()").split(", "))
         if start <= date < end:
@@ -156,15 +301,29 @@ def map_true_date_to_interval(date):
     return None  # Return None if date does not fall into any defined interval
 
 
-def prediction(model, input_data, sexe_label, date_label=None):
+def prediction(model, input_data, sexe_label, date_label=None, file_name=None):
+    """
+    Effectue des prédictions à l'aide d'un modèle et retourne un DataFrame avec les résultats.
+
+    Args:
+        model (_type_): Modèle utilisé pour les prédictions.
+        input_data (_type_): Données d'entrée pour les prédictions.
+        sexe_label (_type_): Étiquettes de sexe réelles.
+        date_label (_type_, optional): Étiquettes de date réelles. Defaults to None.
+        file_name (_type_, optional): Nom du fichier associé aux prédictions. Defaults to None.
+
+    Returns:
+        pd.DataFrame: DataFrame contenant les prédictions et les étiquettes réelles (si disponibles).
+    """
     test_predictions = model.predict(input_data)
 
     if len(test_predictions) == 2:
         # Unpack predictions
         pred_sexe = np.squeeze((test_predictions[0] > 0.5).astype("int32"))
-        pred_date = test_predictions[1]
+        pred_date = calculate_estimated_year_tensor(list(config.DATE_MAP.values()), test_predictions[1])
     else:
         pred_sexe = np.squeeze((test_predictions > 0.5).astype("int32"))
+        pred_date = None
         
     true_sexe = np.array(sexe_label).astype("int32")
     true_date = np.array(date_label).astype("int32") if date_label is not None else None
@@ -173,7 +332,8 @@ def prediction(model, input_data, sexe_label, date_label=None):
         "true sexe": true_sexe,
         "pred sexe": pred_sexe,
         "true date": true_date,
-        # "pred date": pred_date,
+        "pred date": pred_date,
+        "file name": file_name,
     })
     return df
 
@@ -183,8 +343,8 @@ def save_accuracy_by_interval_and_gender(df: pd.DataFrame, output_file: str):
     Prépare les données pour calculer l'accuracy pour chaque sexe et chaque intervalle,
     puis trace un histogramme à barres pour l'accuracy par intervalle et sexe.
 
-    Arguments :
-    df : DataFrame - Le DataFrame contenant les données à analyser.
+    Args :
+        df : DataFrame - Le DataFrame contenant les données à analyser.
     """
     plt.style.use("seaborn-v0_8-whitegrid")
     # Préparer les données pour l'accuracy
@@ -232,21 +392,21 @@ def save_hist_confusion_matrix(df: pd.DataFrame, output_file: str):
     """
     Prépare les données et trace l'histogramme de la matrice de confusion normalisée par intervalle et sexe.
 
-    Arguments :
-    df : DataFrame - Le DataFrame contenant les données à analyser.
+    Args :
+        df : DataFrame - Le DataFrame contenant les données à analyser.
 
-    Renvoie :
-    None
+    Returns :
+        None
     """
     def prepare_confusion_data(df: pd.DataFrame):
         """
         Prépare les données pour la matrice de confusion normalisée.
 
-        Arguments :
-        df : DataFrame - Le DataFrame contenant les données à analyser.
+        Args :
+            df : DataFrame - Le DataFrame contenant les données à analyser.
 
-        Renvoie :
-        DataFrame - Un DataFrame contenant les données de la matrice de confusion normalisée.
+        Returns :
+            DataFrame - Un DataFrame contenant les données de la matrice de confusion normalisée.
         """
         # Obtenir les intervalles uniques
         intervals = df["interval"].unique()
@@ -314,11 +474,11 @@ def save_training_history(history_data: dict, save_dir: str="plots", base_filena
     """
     Save the training history for a model and save the figures.
 
-    Parameters:
-    history (History): The training history returned by model.fit()
-    save_dir (str): Directory to save the plots
-    base_filename (str): Base filename for the saved plots
-    single_figure (bool): Whether to save all plots in a single figure
+    Args:
+        history (History): The training history returned by model.fit()
+        save_dir (str): Directory to save the plots
+        base_filename (str): Base filename for the saved plots
+        single_figure (bool): Whether to save all plots in a single figure
     """
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -383,4 +543,6 @@ def save_training_history(history_data: dict, save_dir: str="plots", base_filena
             
             plt.savefig(os.path.join(save_dir, f"{base_filename}_{train_key}.png"))
             plt.close()
+
+#endregion
 

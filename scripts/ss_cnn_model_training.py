@@ -1,3 +1,5 @@
+## TRAINING
+
 import config
 import data
 import os
@@ -47,17 +49,23 @@ def ss_cnn(
     conv_kernel_size: int=3, 
 ):
     """
-    Crée un modèle Keras avec un modèle BERT pré-entraîné pour une tâche de classification du sexe.
+    Crée un modèle Keras pour la classification binaire du sexe en utilisant un modèle BERT et un CNN.
 
     Parameters:
-    - model_id: str, identifiant du modèle pré-entraîné à utiliser (par exemple, 'bert-base-uncased')
-    - max_length: int, la longueur maxiHomme des séquences d'entrée
-    - dense_units: int, nombre d'unités pour les couches denses
-    - conv_filters: int, nombre de filtres pour la couche Conv1D
-    - conv_kernel_size: int, taille du noyau pour la couche Conv1D
+        model_id (str, optional): Identifiant du modèle BERT pré-entraîné à utiliser (par exemple, 'bert-base-uncased').
+        max_length (int, optional): Longueur maximale des séquences d'entrée. Par défaut 514.
+        dense_units (int, optional): Nombre d'unités pour les couches denses. Par défaut 16.
+        conv_filters (int, optional): Nombre de filtres pour la couche Conv1D. Par défaut 32.
+        conv_kernel_size (int, optional): Taille du noyau pour la couche Conv1D. Par défaut 3.
 
     Returns:
-    - model: Keras Model, le modèle compilé
+        tf.keras.Model: Le modèle Keras compilé pour la classification binaire du sexe.
+
+    Notes:
+        Le modèle prend en entrée les identifiants d'entrée (input_ids) et le masque d'attention (attention_mask)
+        et génère une sortie de classification binaire pour le sexe (sigmoid).
+        Le modèle utilise un modèle BERT pré-entraîné pour l'extraction de features, suivi d'une couche Conv1D pour le traitement spatial des features,
+        et une couche Dense pour la classification.
     """
     # Charger le modèle BERT pré-entraîné
     bert_model = TFAutoModel.from_pretrained(model_id)
@@ -77,10 +85,12 @@ def ss_cnn(
     dropout_layer = Dropout(0.3, name="Dropout")(flatten_layer)
 
     # Dense layer for sex classification
-    dense_layer_sexe = Dense(units=dense_units, activation="relu", name="Dense_sexe")(dropout_layer)
+    dense_layer = Dense(units=dense_units, activation="relu", name="Dense")(dropout_layer)
+    # dense_layer_2 = Dense(units=64, activation="relu", name="Dense_layer_2")(dense_layer_1)
+    # dense_layer_3 = Dense(units=16, activation="relu", name="Dense_layer_3")(dense_layer_2)
 
     # Output layer for sex classification
-    sexe_output = Dense(1, activation="sigmoid", name="Sexe_output")(dense_layer_sexe)
+    sexe_output = Dense(1, activation="sigmoid", name="Sexe_output")(dense_layer)
 
     # Créer le modèle
     model = Model(inputs=[input_ids, attention_mask], outputs=sexe_output)
@@ -111,7 +121,7 @@ def main():
 
     # 2. Compiler le modèle avec les fonctions de perte appropriées pour chaque sortie
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=2e-5),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=config.LEARNING_RATE),
         loss={
             "Sexe_output": "binary_crossentropy", 
             # "Date_output": custom_loss,
@@ -186,6 +196,7 @@ def main():
     test_inputs = inputs_and_labels["test_inputs"]
     test_sexe_labels = inputs_and_labels["test_sexe_labels"]
     test_date_labels = inputs_and_labels["test_date_labels"]
+    test_file_name = inputs_and_labels["test_file_name"]
 
     # Libérer la mémoire occupée par inputs_and_labels
     del inputs_and_labels
@@ -214,7 +225,7 @@ def main():
     # )
 
     print("\nPrédictions...\n")
-    prediction_df = prediction(model=model, input_data=test_inputs, sexe_label=test_sexe_labels, date_label=test_date_labels)
+    prediction_df = prediction(model=model, input_data=test_inputs, sexe_label=test_sexe_labels, date_label=test_date_labels, file_name=test_file_name)
 
     evaluate_model(
         df=prediction_df, 

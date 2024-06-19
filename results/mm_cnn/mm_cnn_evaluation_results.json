@@ -1,7 +1,0 @@
-{
-    "loss": 1.205829381942749,
-    "Sexe_output_loss": 0.590965747833252,
-    "Date_output_loss": 6148.63818359375,
-    "Sexe_output_accuracy": 0.6782565712928772,
-    "Date_output_custom_metric": 0.22127574682235718
-}
