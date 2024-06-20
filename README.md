@@ -250,4 +250,23 @@ La combinaison `DistilCamemBERT` + `CNN` et l'approche multitâche offrent de me
 # Liens utiles:
 * https://huggingface.co/cmarkea/distilcamembert-base  
 
+@inproceedings{Martin_2020,
+   title={CamemBERT: a Tasty French Language Model},
+   url={http://dx.doi.org/10.18653/v1/2020.acl-main.645},
+   DOI={10.18653/v1/2020.acl-main.645},
+   booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},
+   publisher={Association for Computational Linguistics},
+   author={Martin, Louis and Muller, Benjamin and Ortiz Suárez, Pedro Javier and Dupont, Yoann and Romary, Laurent and de la Clergerie, Éric and Seddah, Djamé and Sagot, Benoît},
+   year={2020} }
+
+@misc{devlin2019bert,
+      title={BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding}, 
+      author={Jacob Devlin and Ming-Wei Chang and Kenton Lee and Kristina Toutanova},
+      year={2019},
+      eprint={1810.04805},
+      archivePrefix={arXiv},
+      primaryClass={id='cs.CL' full_name='Computation and Language' is_active=True alt_name='cmp-lg' in_archive='cs' is_general=False description='Covers natural language processing. Roughly includes material in ACM Subject Class I.2.7. Note that work on artificial languages (programming languages, logics, formal systems) that does not explicitly address natural-language issues broadly construed (natural-language processing, computational linguistics, speech, text retrieval, etc.) is not appropriate for this area.'}
+}
+
+
 
