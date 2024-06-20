@@ -154,7 +154,7 @@ L'entraînement se lance alors, et plus aucun input de l'utilisateur n'est requi
 Ouvrir le fichier ``.py`` correspondant et modifier les paramètes en dur présents dans ce fichier.
 
 # BERT : CamemBERT
-`BERT` (Bidirectional Encoder Representations from Transformers) est un modèle de langage développé par Google AI, réputé pour sa capacité à capturer les informations contextuelles des mots et des phrases à partir du texte environnant. Son architecture `bidirectionnelle` lui permet de prendre en compte le contexte à la fois à gauche et à droite de chaque mot, améliorant ainsi sa compréhension du `langage naturel`. `BERT` est largement utilisé pour des tâches telles que la `réponse aux questions`, le `résumé de texte` et la `traduction automatique`. Sa `flexibilité` et sa capacité à être finement ajusté en font un choix privilégié pour des applications nécessitant une compréhension profonde du langage, y compris en français avec des variantes comme `DistilCamemBERT`, une version simplifiée de `CamemBERT` spécifiquement adaptée au français.
+`BERT` (Bidirectional Encoder Representations from Transformers) est un modèle de langage développé par Google, réputé pour sa capacité à capturer les informations contextuelles des mots et des phrases à partir du texte environnant. Son architecture `bidirectionnelle` lui permet de prendre en compte le contexte à la fois à gauche et à droite de chaque mot, améliorant ainsi sa compréhension du `langage naturel`. `BERT` est largement utilisé pour des tâches telles que la `réponse aux questions`, le `résumé de texte` et la `traduction automatique`. Sa `flexibilité` et sa capacité à être finement ajusté en font un choix privilégié pour des applications nécessitant une compréhension profonde du langage, y compris en français avec des variantes comme `DistilCamemBERT`, une version simplifiée de `CamemBERT` spécifiquement adaptée au français.
 
 ![Alt text](Transformers_architecture_sans_bg.png)
 
@@ -250,6 +250,7 @@ La combinaison `DistilCamemBERT` + `CNN` et l'approche multitâche offrent de me
 # Liens utiles:
 * https://huggingface.co/cmarkea/distilcamembert-base  
 
+````raw
 @inproceedings{Martin_2020,
    title={CamemBERT: a Tasty French Language Model},
    url={http://dx.doi.org/10.18653/v1/2020.acl-main.645},
@@ -258,7 +259,9 @@ La combinaison `DistilCamemBERT` + `CNN` et l'approche multitâche offrent de me
    publisher={Association for Computational Linguistics},
    author={Martin, Louis and Muller, Benjamin and Ortiz Suárez, Pedro Javier and Dupont, Yoann and Romary, Laurent and de la Clergerie, Éric and Seddah, Djamé and Sagot, Benoît},
    year={2020} }
+````
 
+````raw
 @misc{devlin2019bert,
       title={BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding}, 
       author={Jacob Devlin and Ming-Wei Chang and Kenton Lee and Kristina Toutanova},
@@ -267,6 +270,5 @@ La combinaison `DistilCamemBERT` + `CNN` et l'approche multitâche offrent de me
       archivePrefix={arXiv},
       primaryClass={id='cs.CL' full_name='Computation and Language' is_active=True alt_name='cmp-lg' in_archive='cs' is_general=False description='Covers natural language processing. Roughly includes material in ACM Subject Class I.2.7. Note that work on artificial languages (programming languages, logics, formal systems) that does not explicitly address natural-language issues broadly construed (natural-language processing, computational linguistics, speech, text retrieval, etc.) is not appropriate for this area.'}
 }
-
-
+````
 
