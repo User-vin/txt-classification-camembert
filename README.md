@@ -178,15 +178,15 @@ En outre, notre méthodologie inclut l'utilisation de l'`apprentissage multitâc
 - Pour la `validation (val)`, un ensemble plus petit est séparé, assurant une répartition égale pour chaque classe. `X segments` sont utilisés pour l'entraînement.
 - `Modèle de type BERT : distilCamemBERT`
 - Le modèle `distilCamemBERT` est intégré dans notre architecture, choisi pour sa taille réduite par rapport à `CamemBERT` tout en maintenant de bonnes performances pour le français. Il est utilisé pour la `classification de texte` en fonction du `sexe de l'auteur` et éventuellement de la `date de parution`. Les textes tokenisés sont segmentés en morceaux de `514 tokens` maximum pour traiter les documents plus longs.
-- `Description des modèles utilisés`
+
+## Description des modèles utilisés
 - Deux architectures de modèles ont été évaluées et comparées avec celles de notre collaborateur. Chaque modèle commence par une couche d'entrée avec deux inputs : les `identifiants de tokens` des segments tokenisés et les `masques d'attention` correspondants. Un encodeur basé sur `distilCamemBERT` génère des `représentations vectorielles` pour chaque segment, qui passent ensuite par un `CNN 1D`, une `couche de dropout`, une `couche dense`, et enfin un `classifieur`. Les modèles diffèrent par leur capacité multitâche : l'un est `mono-tâche`, se concentrant sur la `classification du sexe de l'auteur`, et l'autre est `multi-tâche` avec une tête pour chaque tâche (`sexe de l'auteur` et `date de parution`).
-- `Entraînement`
-- Pour des raisons de `capacité de calcul` et de `temps d'entraînement`, la quantité de données pour l'entraînement et la validation initiale a été réduite. Tous les modèles sont cependant évalués sur l'ensemble complet de données. Cette approche assure une répartition équilibrée des données malgré les disparités dues au découpage en segments.
+
+## Entraînement
+Pour des raisons de `capacité de calcul` et de `temps d'entraînement`, la quantité de données pour l'entraînement et la validation initiale a été réduite. Tous les modèles sont cependant évalués sur l'ensemble complet de données. Cette approche assure une répartition équilibrée des données malgré les disparités dues au découpage en segments.
 
 
 # Résultats
-`Résultats`
-Passons maintenant à l'évaluation des modèles en utilisant plusieurs métriques.
 
 ## Loss
 Les courbes de `Loss` montrent que pour le second modèle, la `loss` est obtenue en combinant la `loss` sur le `sexe` et la `loss` sur la `date` avec une pondération. Pour comparer les résultats, on examine la `loss` pour le `sexe`. Les deux modèles se sont entraînés sur `7 epochs`, et le minimum de `loss` est atteint à l'`epoch 4`, avec des valeurs respectives de `0.46` pour le modèle `Single Task` et `0.28` pour le modèle `Multi-Head`.
@@ -212,7 +212,7 @@ Globalement, le modèle `Multi-Head` a de meilleures performances textuelles, av
 |          | Recall     | 0.4              | 0.66              |
 |          | F1 Score   | 0.5714           | 0.7952            |
 
-`Taux d'Accuracy
+## Taux d'Accuracy
 L'analyse du `taux d'accuracy` par intervalle et par sexe montre que les `hommes` sont mieux prédits avec le modèle `Multi-Head` pour tous les intervalles, bien que les `femmes` soient légèrement moins bien prédites. Le modèle `Multi-Head` offre des résultats plus homogènes.
 
 ![Taux d'Accuracy - Modèle Single Task](ss_cnn_accuracy_by_interval_sexes.png "Taux d'Accuracy - Modèle Single Task")
@@ -243,9 +243,11 @@ Prédiction de la Date :
 Ajoute une dimension temporelle utile pour enrichir les prédictions.
 Améliore la robustesse et la précision globale des résultats.
 
-Perspectives Prometteuses :
-La combinaison `DistilCamemBERT` + `CNN` et l'approche multitâche offrent de meilleures performances et ouvrent de nouvelles perspectives pour des applications complexes.
-
+Perspectives :
+- Utiliser toutes les données d'entraînement, faire une représentation vectorielle plus globale.
+- Faire une `validation croisée`.
+- Utiliser plus de données d'entraînement.
+- Tester avec `CamemBERT-base` et `LSTM`.
 
 # Liens utiles:
 * https://huggingface.co/cmarkea/distilcamembert-base  
